@@ -1,0 +1,36 @@
+import socket
+import threading
+
+# Function to scan a single port
+def scan_port(target, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(0.5)  # Timeout for faster response
+    result = s.connect_ex((target, port))
+    s.close()
+
+    # Printing the result in the required format
+    if result == 0:
+        print(f"Port {port} is OPEN")
+    else:
+        print(f"Port {port} is closed")
+
+# Function to scan ports with multi-threading
+def scan_ports(target, start_port, end_port):
+    print(f"\nScanning {target} from port {start_port} to {end_port}...\n")
+    threads = []
+
+    for port in range(start_port, end_port + 1):
+        thread = threading.Thread(target=scan_port, args=(target, port))
+        thread.start()
+        threads.append(thread)
+
+    for thread in threads:
+        thread.join()
+
+# Get user input
+target = input("Enter the target IP or domain: ")
+start_port = int(input("Enter start port: "))
+end_port = int(input("Enter end port: "))
+
+# Run port scan
+scan_ports(target, start_port, end_port)
