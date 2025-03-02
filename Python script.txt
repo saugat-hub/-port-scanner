@@ -1,22 +1,41 @@
 import socket
 import threading
 
-# Function to scan a single port
+# Dictionary containing common ports and their potential vulnerabilities
+vulnerability_db = {
+    21: "FTP may allow anonymous login. Ensure strong credentials and disable anonymous access.",
+    22: "SSH is vulnerable to brute-force attacks. Use key-based authentication and limit login attempts.",
+    23: "Telnet transmits data in plaintext. Replace with SSH for secure communication.",
+    25: "SMTP can be used for email spoofing. Implement SPF, DKIM, and disable open relay.",
+    53: "DNS may be vulnerable to DNS spoofing. Use DNSSEC for better security.",
+    80: "HTTP is prone to web attacks like SQL injection and XSS. Use HTTPS and proper validation.",
+    110: "POP3 sends credentials in plaintext. Use SSL or TLS for secure authentication.",
+    143: "IMAP, like POP3, should avoid plaintext authentication. Use encrypted connections.",
+    443: "HTTPS should have updated SSL or TLS configurations to prevent man-in-the-middle attacks.",
+    3389: "RDP is a common target for brute-force attacks. Use a VPN and limit access.",
+    3306: "MySQL can be exposed to SQL injection. Restrict remote access and use strong passwords.",
+    5900: "VNC is often misconfigured. Require authentication and limit network access.",
+}
+
+# Function to scan a single port and check for vulnerabilities
 def scan_port(target, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(0.5)  # Timeout for faster response
-    result = s.connect_ex((target, port))
+    s.settimeout(0.5)  # Set timeout for quick response
+    result = s.connect_ex((target, port))  # Try to connect
     s.close()
 
-    # Printing the result in the required format
     if result == 0:
-        print(f"Port {port} is OPEN")
+        print(f"Port {port} is open")
+        if port in vulnerability_db:
+            print(f"Vulnerability Suggestion: {vulnerability_db[port]}")
+        else:
+            print("No known vulnerabilities, but ensure proper security measures.")
     else:
         print(f"Port {port} is closed")
 
-# Function to scan ports with multi-threading
+# Function to scan multiple ports with multi-threading
 def scan_ports(target, start_port, end_port):
-    print(f"\nScanning {target} from port {start_port} to {end_port}...\n")
+    print(f"Scanning {target} from port {start_port} to {end_port}")
     threads = []
 
     for port in range(start_port, end_port + 1):
